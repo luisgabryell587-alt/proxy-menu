@@ -23,10 +23,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar ferramentas Android
+      - name: Preparar Android SDK
         run: |
           yes | sdkmanager --licenses || true
           sdkmanager "platform-tools" "build-tools;35.0.0"
@@ -65,7 +62,9 @@ jobs:
 
       - name: Verificar APK
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify \
+            --verbose \
+            app.apk
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
