@@ -25,8 +25,20 @@ jobs:
 
       - name: Preparar Android SDK
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "build-tools;35.0.0"
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER=$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager não foi encontrado"
+            find "$SDK_ROOT" -type f -name sdkmanager || true
+            exit 1
+          fi
+
+          echo "SDK encontrado em: $SDK_ROOT"
+          echo "sdkmanager encontrado em: $SDKMANAGER"
+
+          yes | "$SDKMANAGER" --licenses || true
+          "$SDKMANAGER" "platform-tools" "build-tools;35.0.0"
 
       - name: Baixar Apktool
         run: |
@@ -52,7 +64,15 @@ jobs:
 
       - name: Assinar APK
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+
+          if [ ! -f "$APKSIGNER" ]; then
+            echo "apksigner não foi encontrado"
+            find "$ANDROID_HOME/build-tools" -type f -name apksigner || true
+            exit 1
+          fi
+
+          "$APKSIGNER" sign \
             --ks debug.keystore \
             --ks-pass pass:android \
             --key-pass pass:android \
